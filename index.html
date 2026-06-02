@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TFS 企微智能网关 - 配置管理后台</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-color); color: var(--text-color); line-height: 1.5; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        header { margin-bottom: 24px; padding-bottom: 12px; border-bottom: 2px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        h1 { font-size: 24px; color: #0f172a; }
+        .card { background: var(--card-bg); border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px; border: 1px solid var(--border-color); }
+        .card-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #334155; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 16px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 14px; font-weight: 500; color: #475569; }
+        input { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; outline: none; transition: border 0.2s; }
+        input:focus { border-color: var(--primary-color); }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.2s; }
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-primary:hover { background-color: #1d4ed8; }
+        .btn-success { background-color: #10b981; color: white; }
+        .btn-success:hover { background-color: #059669; }
+        .btn-danger { background-color: #ef4444; color: white; }
+        .btn-danger:hover { background-color: #dc2626; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { background-color: #f1f5f9; font-weight: 600; color: #475569; }
+        .project-input-name { width: 150px; }
+        .project-input-url { width: 100%; }
+        .status-bar { padding: 12px; border-radius: 6px; font-size: 14px; margin-bottom: 16px; display: none; }
+        .status-success { background-color: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .status-error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>TFS 企微智能路由网关</h1>
+                <p style="font-size: 13px; color: #64748b; margin-top: 4px;">可视化 Web 热更新配置面板</p>
+            </div>
+            <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px;">
+                <label style="white-space: nowrap;">管理 Token:</label>
+                <input type="password" id="adminToken" placeholder="请输入 ADMIN_TOKEN" style="width: 200px;">
+                <button class="btn btn-primary" onclick="loadConfig()">加载配置</button>
+            </div>
+        </header>
+
+        <div id="statusBar" class="status-bar"></div>
+
+        <div class="card">
+            <div class="card-title">🌐 全局服务基础配置</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>网关运行端口 (PORT)</label>
+                    <input type="number" id="cfgPort" placeholder="5000">
+                </div>
+                <div class="form-group">
+                    <label>消息防抖等待时间 (秒)</label>
+                    <input type="number" id="cfgDebounce" placeholder="30">
+                </div>
+                <div class="form-group">
+                    <label>Azure Webhook 签名密钥 (选填)</label>
+                    <input type="text" id="cfgSecret" placeholder="留空则不验证签名">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>TFS 内网域名替换规则 (TFS_DOMAIN_REPLACE)</label>
+                <input type="text" id="cfgDomain" placeholder="例如 http://172.16.10.8:8080/">
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>🤖 项目群机器人映射管理 (PROJECTS)</span>
+                <button class="btn btn-success" onclick="addProjectRow('', '')">＋ 添加项目映射</button>
+            </div>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">注：必须保留包含一个名为 <b>DEFAULT</b> 的项目作为未匹配时的兜底机器人。</p>
+            
+            <table id="projectsTable">
+                <thead>
+                    <tr>
+                        <th style="width: 200px;">TFS 项目团队名称</th>
+                        <th>企业微信 Webhook 机器人链接 (URL)</th>
+                        <th style="width: 80px; text-align: center;">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="projectsContainer">
+                    </tbody>
+            </table>
+        </div>
+
+        <div style="text-align: right; margin-bottom: 40px;">
+            <button class="btn btn-primary" style="padding: 12px 32px; font-size: 15px;" onclick="saveConfig()">💾 保存并应用网关配置</button>
+        </div>
+    </div>
+
+    <script>
+        // 页面初始化时读取本地存储的 Token
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedToken = localStorage.getItem('tfs_admin_token');
+            if (savedToken) {
+                document.getElementById('adminToken').value = savedToken;
+                loadConfig(); // 自动尝试加载一次
+            }
+        });
+
+        function showStatus(msg, isSuccess = true) {
+            const bar = document.getElementById('statusBar');
+            bar.textContent = msg;
+            bar.className = `status-bar ${isSuccess ? 'status-success' : 'status-error'}`;
+            bar.style.display = 'block';
+            setTimeout(() => { bar.style.display = 'none'; }, 5000);
+        }
+
+        // 行添加函数
+        function addProjectRow(projectName, webhookUrl) {
+            const container = document.getElementById('projectsContainer');
+            const tr = document.createElement('tr');
+            
+            // 是否是禁止修改名称的兜底键
+            const isDefault = projectName === 'DEFAULT';
+
+            tr.innerHTML = `
+                <td>
+                    <input type="text" class="project-input-name" value="${projectName}" placeholder="例如 IB_CMMI" ${isDefault ? 'readonly style="background:#f1f5f9; font-weight:bold;"' : ''}>
+                </td>
+                <td>
+                    <input type="text" class="project-input-url" value="${webhookUrl}" placeholder="https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=...">
+                </td>
+                <td style="text-align: center;">
+                    ${isDefault ? '<span style="color:#64748b; font-size:12px;">系统兜底</span>' : '<button class="btn btn-danger" style="padding:4px 8px; font-size:12px;" onclick="this.closest(\'tr\').remove()">删除</button>'}
+                </td>
+            `;
+            container.appendChild(tr);
+        }
+
+        // 从后端拉取当前最新的配置
+        async function loadConfig() {
+            const token = document.getElementById('adminToken').value.trim();
+            if (!token) {
+                showStatus('请输入管理 Token 后再执行加载！', false);
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/config', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.error || '加载失败');
+                }
+
+                const config = await response.json();
+                localStorage.setItem('tfs_admin_token', token); // 记忆安全 Token
+
+                // 填入全局表单
+                document.getElementById('cfgPort').value = config.PORT || 5000;
+                document.getElementById('cfgDebounce').value = config.DEBOUNCE_WAIT_TIME ?? 30;
+                document.getElementById('cfgSecret').value = config.AZURE_WEBHOOK_SECRET || '';
+                document.getElementById('cfgDomain').value = config.TFS_DOMAIN_REPLACE || '';
+
+                // 清空并重新生成表格
+                const container = document.getElementById('projectsContainer');
+                container.innerHTML = '';
+
+                // 优先保证 DEFAULT 渲染在第一行
+                if (config.PROJECTS && config.PROJECTS['DEFAULT']) {
+                    addProjectRow('DEFAULT', config.PROJECTS['DEFAULT']);
+                }
+
+                // 渲染其他非 DEFAULT 项目
+                if (config.PROJECTS) {
+                    for (const [proj, url] of Object.entries(config.PROJECTS)) {
+                        if (proj !== 'DEFAULT') {
+                            addProjectRow(proj, url);
+                        }
+                    }
+                }
+                
+                // 如果全新的配置里没有DEFAULT，自动补一个
+                if (!document.querySelector('.project-input-name[value="DEFAULT"]')) {
+                    addProjectRow('DEFAULT', '');
+                }
+
+                showStatus('网关当前配置同步成功！');
+            } catch (error) {
+                showStatus(`同步失败: ${error.message}`, false);
+            }
+        }
+
+        // 打包表单数据并下发给后端热更新
+        async function saveConfig() {
+            const token = document.getElementById('adminToken').value.trim();
+            if (!token) {
+                showStatus('保存配置需提供有效的管理 Token 验证权限！', false);
+                return;
+            }
+
+            // 1. 拼装 PROJECTS 映射关系
+            const projectsObj = {};
+            const rows = document.getElementById('projectsContainer').querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                const name = row.querySelector('.project-input-name').value.trim();
+                const url = row.querySelector('.project-input-url').value.trim();
+                if (name) {
+                    projectsObj[name] = url;
+                }
+            });
+
+            if (!projectsObj['DEFAULT']) {
+                showStatus('保存失败：项目中必须包含一个 [DEFAULT] 兜底配置项！', false);
+                return;
+            }
+
+            // 2. 组装整体 Payload
+            const payload = {
+                "PORT": parseInt(document.getElementById('cfgPort').value) || 5000,
+                "ADMIN_TOKEN": token,
+                "AZURE_WEBHOOK_SECRET": document.getElementById('cfgSecret').value.trim(),
+                "TFS_DOMAIN_REPLACE": document.getElementById('cfgDomain').value.trim(),
+                "DEBOUNCE_WAIT_TIME": parseFloat(document.getElementById('cfgDebounce').value) ?? 30,
+                "PROJECTS": projectsObj
+            };
+
+            try {
+                const response = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.error || '保存失败');
+                }
+
+                showStatus('网关配置已成功覆写至磁盘，变量热更新完成并即时生效！');
+            } catch (error) {
+                showStatus(`保存失败: ${error.message}`, false);
+            }
+        }
+    </script>
+</body>
+</html>

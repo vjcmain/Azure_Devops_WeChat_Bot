@@ -1,0 +1,12 @@
+{
+    "PORT": 5000,
+    "ADMIN_TOKEN": "MySecretToken@2026",
+    "AZURE_WEBHOOK_SECRET": "",
+    "TFS_DOMAIN_REPLACE": "http://172.16.10.8:8080/",
+    "DEBOUNCE_WAIT_TIME": 30,
+    "PROJECTS": {
+        "DEFAULT": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=兜底群机器人key",
+        "IB_CMMI": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=f794b1d6-52f3-4a96-8fdc-5ea18549565b",
+        "TEAM_SVC": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=ef9f691e-6b14-4fce-afea-bc460cd51297"
+    }
+}
