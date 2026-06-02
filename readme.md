@@ -1,4 +1,5 @@
 🚀 TFS 企微智能路由网关 (TFS to WeCom Smart Router Gateway)
+
 📑 项目总结
 TFS 企微智能路由网关 是一个基于 Python 和 Flask 构建的轻量级、高性能中间件服务。它的核心使命是连接 TFS/Azure DevOps (ADO) 与 企业微信 (WeCom)，将枯燥复杂的底层研发事件转化为排版精美、重点突出的企业微信群通知，极大提升研发团队的协同效率。
 
@@ -101,3 +102,14 @@ Trigger 选择 Work item created 或 Work item updated。
 Action 设置中，URL 填写：http://<服务器IP>:5000/webhook
 
 点击 Test 进行测试，成功后点击 Finish 即可。
+
+效果展示
+<img width="378" height="283" alt="企业微信截图_17803624729426" src="https://github.com/user-attachments/assets/7f13a650-c648-4f28-9cac-4e2e172b74fd" />
+<img width="370" height="208" alt="企业微信截图_17803625111747" src="https://github.com/user-attachments/assets/a7b16a70-e51d-4343-ad24-b6403b9b72a0" />
+<img width="280" height="167" alt="企业微信截图_1780362540696" src="https://github.com/user-attachments/assets/b4d1e071-d03a-47b2-be2d-759074edecdb" />
+
+
+
+
+
+
